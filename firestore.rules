@@ -1,0 +1,26 @@
+rules_version = '2';
+
+// Regras do Firestore para o OndaVerde (projeto demonstrativo, sem login).
+// Cole em: Console do Firebase > Firestore Database > Regras > Publicar.
+// Em um produto real, use Firebase Authentication e restrinja update/delete ao autor.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /ocorrencias/{id} {
+      allow read: if true;
+      allow create: if request.resource.data.tipo is string
+                    && request.resource.data.intersectionId is string
+                    && request.resource.data.autorId is string
+                    && request.resource.data.descricao is string
+                    && request.resource.data.descricao.size() <= 280;
+      // só permite mudar o status e a lista de confirmações
+      allow update: if request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['status', 'confirmadoPor']);
+      allow delete: if true;
+    }
+
+    match /emergencias/{id} {
+      allow read, create, update: if true;
+    }
+  }
+}
